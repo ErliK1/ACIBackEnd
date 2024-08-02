@@ -1,0 +1,14 @@
+bshvenv
+./bshvenv
+bshvenv/
+*.idea
+*.vscode
+.idea
+.vscode
+.idea/
+venv/
+env/
+__pycache_/
+ACIBackEnd/__pycache__/
+
+
