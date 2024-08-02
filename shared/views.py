@@ -32,7 +32,7 @@ class ACIListAPIView(ListAPIView, abc.ABC):
         queryset = self.get_queryset()
         queryset = self.filter_queryset(queryset)
         queryset = self.order_queryset(queryset)
-        serializer = self.get_serializer(queryset)
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def filter_queryset(self, queryset):
