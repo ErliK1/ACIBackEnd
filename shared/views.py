@@ -54,6 +54,8 @@ class ACIListAPIView(ListAPIView, abc.ABC):
     def find_lookup_key(self, serializer: serializers.Serializer, key, exact):
         if not exact and isinstance(serializer.fields.get(key), serializers.CharField):
             return '{}__icontains'.format(self.filter_map.get(key))
+        if not exact and isinstance(serializer.fields.get(key), serializers.ListSerializer):
+            return '{}__in'.format(self.filter_map.get(key))
         return self.filter_map.get(key)
 
     def get_filter_serializer_class(self):
