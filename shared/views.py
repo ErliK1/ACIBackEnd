@@ -5,6 +5,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
 from django.db.models import Q
 from django.shortcuts import render
+
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView
 from rest_framework import serializers, status
@@ -16,6 +18,7 @@ from shared.models import ACIModel
 from shared.utils import get_error_message
 
 
+
 # Create your views here.
 
 
@@ -25,18 +28,22 @@ class ACIListAPIView(ListAPIView, abc.ABC):
     filter_map = {}
     order_params = None
     model_class: ACIModel = None
-
+    pagination_class = PageNumberPagination
     # ToDo - Add Paginator
 
     # ToDo - Perpiqu ta pergatisesh per list serializer
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset()
+        queryset = self.filter_queryset(self.get_queryset())
         queryset = self.order_queryset(queryset)
+        if self.paginator is not None:
+            queryset = self.paginator.paginate_queryset(queryset=queryset, request=request, view=self)
+            serializer = self.get_serializer(queryset, many=True)
+            return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def filter_queryset(self):
+    def filter_queryset(self, query_set):
         query_params_for_filter = self.request.query_params.get('filter')
         exact = False
         if not query_params_for_filter:
@@ -81,6 +88,15 @@ class ACIListAPIView(ListAPIView, abc.ABC):
                 return query_set.order_by(
                     *list(map(lambda x: '-' + str(x), [self.filter_map.get(element) for element in sort_by])))
         return query_set
+
+    @property 
+    def paginator(self, ):
+        if not hasattr(self, '_paginator'):
+            if self.pagination_class is None:
+                self._paginator = None
+            else:
+                self._paginator = self.pagination_class
+        return self._paginator
 
 
 class ACICreateAPIView(CreateAPIView, abc.ABC):

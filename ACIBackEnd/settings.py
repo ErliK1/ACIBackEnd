@@ -26,14 +26,19 @@ class Environment(Enum):
 
 ENVIRONMENT = Environment.staging
 
-if ENVIRONMENT == ENVIRONMENT.staging:
+if ENVIRONMENT == Environment.staging:
     DEBUG=True
     APP_URL = 'http://localhost:4200'
     DB_HOST = ''
     DB_NAME = 'ACI_{}'.format(ENVIRONMENT)
     DB_PASSWORD = ''
     HOST = 'http://localhost:8000'
-
+elif ENVIRONMENT == ENVIRONMENT.production:
+    DEBUG = False
+    APP_URL = 'https://api.aci.al'
+    DB_HOST = ''
+    DB_NAME = 'ACI_{}'.format(ENVIRONMENT)
+    HOST = ''
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -50,7 +55,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
+#    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -107,16 +112,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'ACIBackEnd.wsgi.application'
 
+AUTH_USER_MODEL = 'shared.User'
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+        'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+        }
 
 
 # Password validation
