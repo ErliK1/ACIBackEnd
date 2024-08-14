@@ -29,8 +29,8 @@ class ACIListAPIView(ListAPIView, abc.ABC):
     order_params = None
     model_class: ACIModel = None
     pagination_class = PageNumberPagination
+    sort_map = {}
     # ToDo - Add Paginator
-
     # ToDo - Perpiqu ta pergatisesh per list serializer
 
     def list(self, request, *args, **kwargs):
@@ -51,13 +51,12 @@ class ACIListAPIView(ListAPIView, abc.ABC):
             exact = True
         if query_params_for_filter:
             serializer = self.get_serializer(json.loads(query_params_for_filter))
-            return self.get_queryset().filter(self.find_filter_kwargs(serializer, exact)) if self.get_queryset() \
-                else self.model_class.aci_objects.filter(self.find_filter_kwargs(serializer, exact))
-        return self.get_queryset() if self.queryset else self.model_class.aci_objects.all()
+            return self.get_queryset().filter(self.find_filter_kwargs(serializer, exact)) 
+        return self.get_queryset() 
 
     def find_filter_kwargs(self, serializer: serializers.Serializer, exact):
         dictionary_filter_kwargs = {self.find_lookup_key(serializer, k, exact): v for k, v in serializer.validated_data
-                                    if v or v is not False}
+                                    if v or v is False}
         return Q(**dictionary_filter_kwargs)
 
     def find_lookup_key(self, serializer: serializers.Serializer, key, exact):
@@ -82,11 +81,12 @@ class ACIListAPIView(ListAPIView, abc.ABC):
         sort_by = self.request.query_params.get('sort')
         order_by = self.request.query_params.get('order')
         if sort_by and order_by:
+            sort_by = json.loads(sort_by)
             if order_by == 'asc':
-                return query_set.order_by(*[self.filter_map.get(element) for element in sort_by])
+                return query_set.order_by(*[self.sort_map.get(element) for element in sort_by])
             else:
                 return query_set.order_by(
-                    *list(map(lambda x: '-' + str(x), [self.filter_map.get(element) for element in sort_by])))
+                    *list(map(lambda x: '-' + str(x), [self.sort_map.get(element) for element in sort_by])))
         return query_set
 
     @property 
