@@ -29,7 +29,7 @@ class ProductListAPIView(ACIListAPIView):
 
 
     def get_queryset(self, ):     
-        if self.request.query_params.get('price'):
+        if self.request.query_params.get('price') and self.request.query_params.get('price').is_numeric():
             price = float(self.request.query_params.get('price'))
             popularity_queryset = Product.aci_objects.filter(sell_price__lte=price)
         else:

@@ -24,12 +24,15 @@ class Product(ACIModel):
     discount = models.FloatField(default=0)
     has_discount = models.BooleanField(default=False)
     name = models.CharField(max_length=100)
+    main_image = models.ImageField(upload_to='images/', null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        if self.discount > 100:
+        if self.discount > 100 or self.discount < 0:
             raise ACIValidationError("Ca je tu bo mer jau, e nxorre kompanin berrnut")
         if self.discount > 0:
             self.has_discount = True
+        else:
+            self.has_discount = False
         self.discount = models.F("discount") / 100
         super(Product, self).save(*args, **kwargs)
 
@@ -77,7 +80,7 @@ class Order(ACIModel):
 
     def save(self, *args, **kwargs):
         if self.client_secret:
-            self.is_paid_online = True;
+            self.is_paid_online = True
         return super(Order, self).save(*args, **kwargs)
 
 
@@ -100,7 +103,7 @@ class OrderProduct(ACIModel):
                 raise ACIValidationError("Sbohet Fjal, Ik mshpi")
             self.price = self.product.price
             self.discount = self.product.discount
-            product_popularity = ProductPopularity.aci_objects.get_or_create(product=self.product)
+            product_popularity = ProductPopularity.objects.get_or_create(product=self.product)
             product_popularity.product_count = models.F('product_count') + self.product_count
             product_popularity.save()
         return super(OrderProduct, self).save(*args, **kwargs)
@@ -112,6 +115,17 @@ class ProductPopularity(ACIModel):
 
     product = models.ForeignKey(Product, related_name='product_popularities', on_delete=models.CASCADE)
     product_count = models.IntegerField(default=0)
+
+
+class ProductImage(ACIModel):
+    class Meta:
+        db_table = 'product_image'
+        verbose_name = 'Imazh Produkti'
+        verbose_name_plural = 'Imazhet e Produktit'
+
+    image = models.ImageField(upload_to='images/')
+    product = models.ForeignKey(Product, related_name='product_images', on_delete=models.CASCADE)
+
 
 
 

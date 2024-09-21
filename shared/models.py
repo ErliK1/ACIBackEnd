@@ -15,7 +15,6 @@ class ACIModel(models.Model):
         abstract = True
 
     deleted = models.BooleanField(default=False)
-    aci_objects = ACIManager()
 
 
 class User(AbstractUser):
