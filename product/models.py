@@ -33,7 +33,10 @@ class Product(ACIModel):
             self.has_discount = True
         else:
             self.has_discount = False
-        self.discount = models.F("discount") / 100
+        if self.pk:
+            self.discount = models.F("discount") / 100
+        else:
+            self.discount = self.discount / 100
         super(Product, self).save(*args, **kwargs)
 
 
@@ -77,6 +80,10 @@ class Order(ACIModel):
     client_secret = models.CharField(null=True, blank=True, max_length=100)
     is_paid_online = models.BooleanField(default=False)
     printed_recipt = models.BooleanField(default=False)
+    name = models.CharField(max_length=100, null=True, blank=True)
+    email = models.EmailField(null=True, blank=True)
+    address = models.CharField(max_length=100, null=True, blank=True)
+    is_admin = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         if self.client_secret:
@@ -101,8 +108,9 @@ class OrderProduct(ACIModel):
         if not self.pk:
             if self.product_count > self.product.stock:
                 raise ACIValidationError("Sbohet Fjal, Ik mshpi")
-            self.price = self.product.price
-            self.discount = self.product.discount
+            if not self.order.is_admin:
+                self.price = self.product.price
+                self.discount = self.product.discount
             product_popularity = ProductPopularity.objects.get_or_create(product=self.product)
             product_popularity.product_count = models.F('product_count') + self.product_count
             product_popularity.save()

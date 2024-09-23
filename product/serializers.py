@@ -3,11 +3,11 @@ from rest_framework import serializers
 from product.models import Product, Brand, Category, ProductCategory
 
 class ProductListFilterSerializer(serializers.Serializer):
-    category = serializers.ListField(child=serializers.IntegerField,
-                                     allow_null=True, allow_blank=True)
-    brand = serializers.CharField(allow_null=True, allow_blank=True)
-    name = serializers.CharField(allow_null=True, allow_blank=True)
-    discount = serializers.BooleanField(allow_null=True, allow_blank=True)
+    category = serializers.ListField(child=serializers.IntegerField(),
+                                     allow_null=True, required=False)
+    brand = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    name = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    discount = serializers.BooleanField(allow_null=True, required=False)
 
 class BrandProductListSerializer(serializers.ModelSerializer):
     class Meta:
@@ -25,9 +25,13 @@ class CategoryProductListSerializer(serializers.ModelSerializer):
 
 class ProductListSerializer(serializers.ModelSerializer):
     brand = BrandProductListSerializer()
-    category = CategoryProductListSerializer(many=True)
+    category = serializers.SerializerMethodField() 
 
     class Meta:
         model = Product
         fields = ('id', 'name', 'brand', 'category', 'sell_price') 
 
+    def get_category(self, obj: Product):
+        categories = obj.product_categories.all()
+        serializer = CategoryProductListSerializer(categories, many=True)
+        return serializer.data

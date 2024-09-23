@@ -14,8 +14,8 @@ from rest_framework.response import Response
 
 from shared.constants import DATA, ERRORS, SERIALIZER_ERROR_MESSAGE
 from shared.models import ACIModel
-
 from shared.utils import get_error_message
+from shared.paginators import ACIPaginator
 
 
 
@@ -28,7 +28,7 @@ class ACIListAPIView(ListAPIView, abc.ABC):
     filter_map = {}
     order_params = None
     model_class: ACIModel = None
-    pagination_class = PageNumberPagination
+    pagination_class = ACIPaginator
     sort_map = {}
     # ToDo - Add Paginator
     # ToDo - Perpiqu ta pergatisesh per list serializer
@@ -50,19 +50,19 @@ class ACIListAPIView(ListAPIView, abc.ABC):
             query_params_for_filter = self.request.query_params.get('exact')
             exact = True
         if query_params_for_filter:
-            serializer = self.get_serializer(json.loads(query_params_for_filter))
-            return self.get_queryset().filter(self.find_filter_kwargs(serializer, exact)) 
-        return self.get_queryset() 
+            data_parsed_to_json = json.loads(query_params_for_filter)
+            serializer = self.get_filter_serializer(data=json.loads(query_params_for_filter))
+            return self.get_queryset().filter(self.find_filter_kwargs(serializer, exact)).distinct() 
+        return self.get_queryset().distinct()
 
     def find_filter_kwargs(self, serializer: serializers.Serializer, exact):
-        dictionary_filter_kwargs = {self.find_lookup_key(serializer, k, exact): v for k, v in serializer.validated_data
-                                    if v or v is False}
+        dictionary_filter_kwargs = {self.find_lookup_key(serializer, k, exact): v for k, v in serializer.data.items() if v or v is False}
         return Q(**dictionary_filter_kwargs)
 
     def find_lookup_key(self, serializer: serializers.Serializer, key, exact):
         if not exact and isinstance(serializer.fields.get(key), serializers.CharField):
             return '{}__icontains'.format(self.filter_map.get(key))
-        if not exact and isinstance(serializer.fields.get(key), serializers.ListSerializer):
+        if not exact and isinstance(serializer.fields.get(key), serializers.ListField):
             return '{}__in'.format(self.filter_map.get(key))
         return self.filter_map.get(key)
 
@@ -71,7 +71,7 @@ class ACIListAPIView(ListAPIView, abc.ABC):
 
     def get_filter_serializer(self, data):
         try:
-            serializer = self.get_serializer_class()(data=data)
+            serializer = self.get_filter_serializer_class()(data=data)
             serializer.is_valid(raise_exception=True)
             return serializer
         except Exception as e:
@@ -81,9 +81,10 @@ class ACIListAPIView(ListAPIView, abc.ABC):
         sort_by = self.request.query_params.get('sort')
         order_by = self.request.query_params.get('order')
         if sort_by and order_by:
-            sort_by = json.loads(sort_by)
+            sort_by = json.loads(sort_by) 
+            sort_by = sort_by.get('values')
             if order_by == 'asc':
-                return query_set.order_by(*[self.sort_map.get(element) for element in sort_by])
+               return query_set.order_by(*[self.sort_map.get(element) for element in sort_by])
             else:
                 return query_set.order_by(
                     *list(map(lambda x: '-' + str(x), [self.sort_map.get(element) for element in sort_by])))
@@ -95,7 +96,7 @@ class ACIListAPIView(ListAPIView, abc.ABC):
             if self.pagination_class is None:
                 self._paginator = None
             else:
-                self._paginator = self.pagination_class
+                self._paginator = self.pagination_class()
         return self._paginator
 
 
@@ -104,18 +105,18 @@ class ACICreateAPIView(CreateAPIView, abc.ABC):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         response_data = {}
-        respones_status = status.HTTP_500_INTERNAL_SERVER_ERROR
+        response_status = status.HTTP_500_INTERNAL_SERVER_ERROR
         response_headers = None
         try:
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
             header = self.get_success_headers(serializer.data)
             response_data = {DATA: serializer.data}
-            response_stauts = status.HTTP_201_CREATED
+            response_status = status.HTTP_201_CREATED
             response_headers = header
         except ValidationError as ve:
             response_data = {ERRORS: ve.get_full_details()}
-            response_stauts = status.HTTP_400_BAD_REQUEST
+            response_status = status.HTTP_400_BAD_REQUEST
         except ObjectDoesNotExist as odne:
             response_data = {ERRORS: 'Object does not exists: {}'.format(str(odne))}
         except IntegrityError as ie:
@@ -123,7 +124,7 @@ class ACICreateAPIView(CreateAPIView, abc.ABC):
         except Exception as e:
             response_data = {ERRORS: str(e)}
         finally:
-            return Response(response_data, status=respones_status, headers=response_headers)
+            return Response(response_data, status=response_status, headers=response_headers)
 
 
 class ACIListCreateAPIView(ACICreateAPIView, ACIListAPIView):
@@ -150,6 +151,9 @@ class ACIRetrieveAPIView(RetrieveAPIView, abc.ABC):
     def get_serializer_class(self):
         assert self.serializer_class or self.read_serializer_class, get_error_message(self.serializer_error_message, self.__class__.__name__)
         return self.serializer_class if self.serializer_class else self.read_serializer_class
+
+
+
 
 
 
