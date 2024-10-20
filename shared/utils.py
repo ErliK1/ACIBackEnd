@@ -10,3 +10,5 @@ def check_ids_part_of_db(list_of_ids, model_class):
     finally:
         return result
 
+
+

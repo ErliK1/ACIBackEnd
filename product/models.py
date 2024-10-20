@@ -101,8 +101,9 @@ class OrderProduct(ACIModel):
     order = models.ForeignKey(Order, related_name='order_products', on_delete=models.CASCADE)
     product: Product = models.ForeignKey(Product, related_name='order_products', on_delete=models.CASCADE)
     product_count = models.IntegerField()
-    price = models.IntegerField()
+    price = models.FloatField()
     discount = models.FloatField()
+    total_price = models.FloatField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if not self.pk:
@@ -111,6 +112,9 @@ class OrderProduct(ACIModel):
             if not self.order.is_admin:
                 self.price = self.product.price
                 self.discount = self.product.discount
+            if self.discount > 1:
+                self.discount = self.discount / 100
+            self.total_price = (self.price - self.price * self.discount) * self.product_count
             product_popularity = ProductPopularity.objects.get_or_create(product=self.product)
             product_popularity.product_count = models.F('product_count') + self.product_count
             product_popularity.save()

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from product.models import Product, Brand, Category, ProductCategory
+from product.models import Product, Brand, Category, ProductCategory, ProductImage
 from shared.utils import check_ids_part_of_db
 from shared.exception import ACIValidationError
 
@@ -49,6 +49,8 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         product = Product.objects.create(**validated_data)
         for category_id in category_ids:
             ProductCategory.objects.create(product=product, category_id=category_id)
+        for image in images:
+            ProductImage.objects.create(product=product, image=image)
         return product
 
 
