@@ -13,10 +13,15 @@ from rest_framework import serializers, status
 from rest_framework.response import Response
 
 from shared.constants import DATA, ERRORS, SERIALIZER_ERROR_MESSAGE
-from shared.models import ACIModel
+from shared.models import ACIAdmin, ACIModel
+from shared.permissions import ACISuperUserPermission
+from shared.serializers import CreateUserSerializer
 from shared.utils import get_error_message
 from shared.paginators import ACIPaginator
 
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
+
+from django.db import transaction
 
 
 # Create your views here.
@@ -155,8 +160,18 @@ class ACIRetrieveAPIView(RetrieveAPIView, abc.ABC):
 
 
 
-
-
+class CreateACiAdminAPIView(ACICreateAPIView):
+    permission_classes = [IsAuthenticated, ACISuperUserPermission]
+    serializer_class = CreateUserSerializer
+    
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        admin = ACIAdmin.objects.create(user=user)
+        return Response({DATA: "Admin created successfully!"}, status=status.HTTP_201_CREATED)
+        
 
 
 

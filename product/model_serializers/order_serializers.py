@@ -1,5 +1,4 @@
 from functools import reduce
-from typing import override
 from rest_framework import serializers
 
 from product.models import Product, OrderProduct, Order
@@ -35,7 +34,8 @@ class OrderProductSerializerUser(OrderProductSerializer):
         extra_kwargs = {
             'price': {'required': False},
             'discount': {'required': False},
-        } + OrderProductSerializer.Meta.extra_kwargs
+            **OrderProductSerializer.Meta.extra_kwargs
+        }
         
     
         
@@ -46,13 +46,12 @@ class OrderCreateForAdminSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = (
-            'id', 'transaction_time', 'client_secret', 'is_paid_online', 'printed_recipt' 'name', 'email', 'address', 'order_products')
+            'id', 'transaction_time', 'client_secret', 'is_paid_online', 'printed_recipt' 'name', 'email', 'address', 'order_products', 'paid')
         extra_kwargs = {
             'id': {'read_only': True},
             'transaction_time': {'read_only': True}
         }
         
-    @override  
     def create(self, validated_data):
         order_products = validated_data.pop('order_products')
         validated_data['is_admin'] = True
@@ -65,18 +64,24 @@ class OrderCreateForUserSerializer(serializers.ModelSerializer):
     order_products = OrderProductSerializerUser(many=True)
     class Meta:
         model = Order
-        fields = ('id', 'client_secret', 'is_paid_online', 'printed_recipt', 'name', 'email', 'address', 'is_admin', 'order_products')
+        fields = ('id', 'client_secret', 'is_paid_online', 'printed_recipt', 'name', 'email', 'address', 'is_admin', 'order_products', 'paid')
+        extra_kwargs = {
+            'name': {'required': True},
+            'email': {'required': True}
+        }
         
-    @override
     def create(self, validated_data):
         order_product = validated_data.pop('order_products')
         if validated_data.get('client_secret', False):
             validated_data['is_paid_online'] = True
+            validated_data['paid'] = True
         order = Order.objects.create(**validated_data)
-        if reduce(lambda acc, x: acc and x, filter(lambda x: x in ['price', 'discount'], order_product.keys())):
-            raise ACIValidationError("Nuk mund te vendosh vlera te produktit")
         for element in order_product:
-            OrderProduct.objects.create(order=order, **validated_data)
+            keys = list(filter(lambda x: x in ["price", "discount"], element.keys()))
+            for key in keys:
+                element.pop(key)
+        for element in order_product:
+            OrderProduct.objects.create(order=order, **element)
         return order
         
         

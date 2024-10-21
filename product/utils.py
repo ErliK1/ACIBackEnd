@@ -10,4 +10,6 @@ def find_total_sells_for_product(order_products):
 
 
 def check_if_user_is_admin(request):
-    return ACIAdmin.objects.filter(user=request.user).exists()
+    if not request.user.is_anonymous:
+        return ACIAdmin.objects.filter(user=request.user).exists()
+    return False

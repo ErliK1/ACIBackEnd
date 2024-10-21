@@ -38,6 +38,9 @@ class Product(ACIModel):
         else:
             self.discount = self.discount / 100
         super(Product, self).save(*args, **kwargs)
+        
+    def __str__(self):
+        return f"{self.name} {str(self.brand)}"
 
 
 class Brand(ACIModel):
@@ -49,6 +52,9 @@ class Brand(ACIModel):
     name = models.CharField(max_length=100, unique=True)
     country = models.CharField(max_length=100, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
+    
+    def __str__(self):
+        return self.name
 
 
 class Category(ACIModel):
@@ -60,6 +66,8 @@ class Category(ACIModel):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(null=True, blank=True)
 
+    def __str__(self):
+        return self.name
 
 class ProductCategory(ACIModel):
     class Meta:
@@ -68,6 +76,9 @@ class ProductCategory(ACIModel):
 
     product = models.ForeignKey(Product, related_name='product_categories', on_delete=models.CASCADE)
     category = models.ForeignKey('Category', related_name='product_categories', on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return str(self.product) + " " + str(self.category)
 
 
 class Order(ACIModel):
@@ -76,7 +87,7 @@ class Order(ACIModel):
         verbose_name = 'Order'
         verbose_name_plural = 'Orderat'
 
-    transaction_time = models.DateTimeField(default=get_local_timezone)
+    transaction_time = models.DateTimeField(auto_now_add=True)
     client_secret = models.CharField(null=True, blank=True, max_length=100)
     is_paid_online = models.BooleanField(default=False)
     printed_recipt = models.BooleanField(default=False)
@@ -84,12 +95,15 @@ class Order(ACIModel):
     email = models.EmailField(null=True, blank=True)
     address = models.CharField(max_length=100, null=True, blank=True)
     is_admin = models.BooleanField(default=False)
+    paid = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         if self.client_secret:
             self.is_paid_online = True
         return super(Order, self).save(*args, **kwargs)
 
+    def __str__(self):
+        return f"Order {self.email} {self.transaction_time}"
 
 class OrderProduct(ACIModel):
     class Meta:
@@ -110,16 +124,18 @@ class OrderProduct(ACIModel):
             if self.product_count > self.product.stock:
                 raise ACIValidationError("Sbohet Fjal, Ik mshpi")
             if not self.order.is_admin:
-                self.price = self.product.price
+                self.price = self.product.sell_price
                 self.discount = self.product.discount
             if self.discount > 1:
                 self.discount = self.discount / 100
             self.total_price = (self.price - self.price * self.discount) * self.product_count
-            product_popularity = ProductPopularity.objects.get_or_create(product=self.product)
+            product_popularity, exists = ProductPopularity.objects.get_or_create(product=self.product)
             product_popularity.product_count = models.F('product_count') + self.product_count
             product_popularity.save()
         return super(OrderProduct, self).save(*args, **kwargs)
 
+    def __str__(self):
+        return f"{self.product} {self.order}"
 
 class ProductPopularity(ACIModel):
     class Meta:
@@ -127,6 +143,9 @@ class ProductPopularity(ACIModel):
 
     product = models.ForeignKey(Product, related_name='product_popularities', on_delete=models.CASCADE)
     product_count = models.IntegerField(default=0)
+    
+    def __str__(self):
+        return f"{self.product} {self.product_count}" 
 
 
 class ProductImage(ACIModel):
@@ -137,6 +156,9 @@ class ProductImage(ACIModel):
 
     image = models.ImageField(upload_to='images/')
     product = models.ForeignKey(Product, related_name='product_images', on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return f"Image {self.product}"
 
 
 

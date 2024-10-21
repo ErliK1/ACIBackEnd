@@ -1,4 +1,3 @@
-from typing import override
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -44,13 +43,11 @@ class OrderListFromManagerAPIView(ACIListAPIView):
 class OrderCreateAPIView(ACICreateAPIView):
     queryset = Order.objects.all()
     
-    @override
     def get_serializer_class(self):
         if check_if_user_is_admin(request=self.request):
             OrderCreateForAdminSerializer
         return OrderCreateForUserSerializer
     
-    @override
     @transaction.atomic
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer_class()(data=request.data)
