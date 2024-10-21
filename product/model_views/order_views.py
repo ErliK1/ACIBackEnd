@@ -1,17 +1,25 @@
+from typing import override
 from rest_framework.response import Response
 from rest_framework import status
 
 from django.http import Http404
 from django.db.models import Sum, F
 
+from django.db import transaction
+
+
+from product.model_serializers.order_serializers import OrderCreateForAdminSerializer, OrderCreateForUserSerializer
 from shared.views import ACICreateAPIView, ACIListAPIView, ACIListCreateAPIView
 from product.models import Order, Product, OrderProduct
 from shared.constants import *
+from product.utils import check_if_user_is_admin
 
 from datetime import datetime
 
 
-class OrderCreateListFromManagerAPIView(ACIListCreateAPIView):
+
+
+class OrderListFromManagerAPIView(ACIListAPIView):
     queryset = Order.objects.all()
     write_serializer_class = None
     read_serializer_class = None
@@ -31,4 +39,25 @@ class OrderCreateListFromManagerAPIView(ACIListCreateAPIView):
         if query_params.get('max_price'):
             pass
         return query_params
+    
+
+class OrderCreateAPIView(ACICreateAPIView):
+    queryset = Order.objects.all()
+    
+    @override
+    def get_serializer_class(self):
+        if check_if_user_is_admin(request=self.request):
+            OrderCreateForAdminSerializer
+        return OrderCreateForUserSerializer
+    
+    @override
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer_class()(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        if (serializer.data.get('printed_receipt')):
+            pass
+        return Response({MESSAGE: 'Kerkesa U be Me Sukses!'}, status=status.HTTP_201_CREATED)
+            
 

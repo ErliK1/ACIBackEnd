@@ -24,3 +24,10 @@ class User(AbstractUser):
     phone_number = models.CharField(max_length=100, null=True, blank=True)
     personal_number = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
+    
+class ACIAdmin(models.Model):
+    class Meta:
+        db_table = 'aci_admin'
+        
+    user = models.OneToOneField(User, related_name='aci_admin', on_delete=models.CASCADE)
+    
