@@ -94,6 +94,7 @@ class Order(ACIModel):
     name = models.CharField(max_length=100, null=True, blank=True)
     email = models.EmailField(null=True, blank=True)
     address = models.CharField(max_length=100, null=True, blank=True)
+    phone_number = models.CharField(max_length=100, null=True, blank=True)
     is_admin = models.BooleanField(default=False)
     paid = models.BooleanField(default=False)
 
@@ -130,7 +131,10 @@ class OrderProduct(ACIModel):
                 self.discount = self.discount / 100
             self.total_price = (self.price - self.price * self.discount) * self.product_count
             product_popularity, exists = ProductPopularity.objects.get_or_create(product=self.product)
-            product_popularity.product_count = models.F('product_count') + self.product_count
+            if exists:
+                product_popularity.product_count = models.F('product_count') + self.product_count
+            else:
+                product_popularity.product_count = product_popularity.product_count + self.product_count
             product_popularity.save()
         return super(OrderProduct, self).save(*args, **kwargs)
 

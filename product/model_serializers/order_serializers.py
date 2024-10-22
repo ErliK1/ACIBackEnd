@@ -85,5 +85,12 @@ class OrderCreateForUserSerializer(serializers.ModelSerializer):
         return order
         
         
+class OrderListSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Order
+        fields = ('id', 'name', 'email', 'phone_number', 'address', 'paid', 'transaction_time', 'is_paid_online')
         
+
+    
     
