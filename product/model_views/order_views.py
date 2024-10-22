@@ -35,22 +35,20 @@ class OrderListFromManagerAPIView(ACIListAPIView):
         list_of_transaction_keys = get_keys_that_contains_date(self.request.query_params.keys())
         query_set = super().get_queryset()
         queryset = self.prepare_queryset_for_date(query_set, list_of_transaction_keys)
-        print(query_set)
         query_set = self.prepare_queryset_for_total_sum(query_set)
-        
+        return query_set 
         
     def prepare_queryset_for_total_sum(self, query_set):
         total_sum_req = self.request.query_params.get('total_sum')
         if total_sum_req:
-            print("Inside the if")
             total_sum_req = float(total_sum_req)
             # query_set = Order.objects.all().annotate(the_total_sum=Subquery(
             #     OrderProduct.objects.filter()
             # ))
             # query_set = query_set.filter(the_total_sum__lte=total_sum_req)
-            query_set = Order.objects.raw(SQL_FOR_ORDER_TRANSACTION_PRICE.format(total_sum_req))
+            data = []
+            
         return query_set 
-        
     
     def prepare_queryset_for_date(self, query_set, list_of_transaction_keys):
         for element in list_of_transaction_keys:

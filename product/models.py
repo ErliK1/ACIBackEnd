@@ -83,7 +83,7 @@ class ProductCategory(ACIModel):
 
 class Order(ACIModel):
     class Meta:
-        db_table = 'order'
+        db_table = 'transaction_order'
         verbose_name = 'Order'
         verbose_name_plural = 'Orderat'
 

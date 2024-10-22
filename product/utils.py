@@ -9,10 +9,10 @@ from datetime import datetime
 from collections.abc import Iterable
 
 SQL_FOR_ORDER_TRANSACTION_PRICE = """
-    SELECT o.*, SUM(op.total_sum) FROM order o
-    INNER JOIN order_product op ON op.order_id = o.id
-    group_by o.id
-    having op.total_sum <= {};
+    SELECT o.*, SUM(op.total_price) FROM transaction_order o
+    inner join order_product op on o.id = op.order_id
+    group by o.id
+    having SUM(op.total_price) <= %s;
 """
 
 
