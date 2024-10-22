@@ -91,6 +91,14 @@ class OrderListSerializer(serializers.ModelSerializer):
         model = Order
         fields = ('id', 'name', 'email', 'phone_number', 'address', 'paid', 'transaction_time', 'is_paid_online')
         
+class OrderFilterSerializer(serializers.Serializer):
+    name = serializers.CharField(required=False)
+    email = serializers.EmailField(required=False)
+    address = serializers.CharField(required=False)
+    phone_number = serializers.CharField(required=False)
+    
+    
+    
 
     
     

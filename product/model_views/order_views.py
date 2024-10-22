@@ -2,17 +2,17 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from django.http import Http404
-from django.db.models import Sum, F, Q
+from django.db.models import Sum, F, Q, Subquery, OuterRef
 
 from django.db import transaction
 
 
-from product.model_serializers.order_serializers import OrderCreateForAdminSerializer, OrderCreateForUserSerializer, OrderListSerializer
+from product.model_serializers.order_serializers import OrderCreateForAdminSerializer, OrderCreateForUserSerializer, OrderFilterSerializer, OrderListSerializer
 from shared.views import ACICreateAPIView, ACIListAPIView, ACIListCreateAPIView
 from product.models import Order, Product, OrderProduct
 from shared.constants import *
 from product.utils import check_if_user_is_admin, \
-get_the_last_part_of_date_key, parse_string_to_date, get_keys_that_contains_date
+get_the_last_part_of_date_key, parse_string_to_date, get_keys_that_contains_date, SQL_FOR_ORDER_TRANSACTION_PRICE
 
 from datetime import datetime
 
@@ -27,13 +27,30 @@ class OrderListFromManagerAPIView(ACIListAPIView):
         'email': 'email',
         'address': 'address',
         'phone_number': 'phone_number',
+         
     }
-    filter_serializer_class = None
+    filter_serializer_class = OrderFilterSerializer
 
     def get_queryset(self, ):
         list_of_transaction_keys = get_keys_that_contains_date(self.request.query_params.keys())
         query_set = super().get_queryset()
-        return self.prepare_queryset_for_date(query_set, list_of_transaction_keys)
+        queryset = self.prepare_queryset_for_date(query_set, list_of_transaction_keys)
+        print(query_set)
+        query_set = self.prepare_queryset_for_total_sum(query_set)
+        
+        
+    def prepare_queryset_for_total_sum(self, query_set):
+        total_sum_req = self.request.query_params.get('total_sum')
+        if total_sum_req:
+            print("Inside the if")
+            total_sum_req = float(total_sum_req)
+            # query_set = Order.objects.all().annotate(the_total_sum=Subquery(
+            #     OrderProduct.objects.filter()
+            # ))
+            # query_set = query_set.filter(the_total_sum__lte=total_sum_req)
+            query_set = Order.objects.raw(SQL_FOR_ORDER_TRANSACTION_PRICE.format(total_sum_req))
+        return query_set 
+        
     
     def prepare_queryset_for_date(self, query_set, list_of_transaction_keys):
         for element in list_of_transaction_keys:
