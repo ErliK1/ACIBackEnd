@@ -53,6 +53,11 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             ProductImage.objects.create(product=product, image=image)
         return product
 
+class PitagoraListAPIView(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Product
+        fields = ('id', 'name', 'category', 'sku_code', 'buy_price', 'sell_price', '')
 
 
         

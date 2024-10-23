@@ -20,6 +20,8 @@ class ProductCreateAPIView(ACICreateAPIView):
         serializer.save()
         return Response({DETAIL: 'Produkti u krijua me suksses'}, status=status.HTTP_201_CREATED)
 
+class ProductListAPIView(ACIListAPIView):
+    pass
 
 
 class CategoryCreateListAPIView(ACIListCreateAPIView):
@@ -33,4 +35,7 @@ class BrandCreateListAPIView(ACIListCreateAPIView):
     queryset = Brand
     read_serializer_class = BrandSerializer
     write_serializer_class = BrandSerializer
+    
+    
+
 
