@@ -6,7 +6,7 @@ from django.db import transaction
 from shared.constants import *
 from shared.views import ACICreateAPIView, ACIListAPIView, ACIListCreateAPIView, ACIRetrieveAPIView
 from product.models import Product, Category, Brand
-from product.model_serializers.product_serializers import ProductCreateSerializer, CategorySerializer, BrandSerializer
+from product.model_serializers.product_serializers import ProductCreateSerializer, CategorySerializer, BrandSerializer, ProductListSerializer
 
 
 class ProductCreateAPIView(ACICreateAPIView):
@@ -20,8 +20,6 @@ class ProductCreateAPIView(ACICreateAPIView):
         serializer.save()
         return Response({DETAIL: 'Produkti u krijua me suksses'}, status=status.HTTP_201_CREATED)
 
-class ProductListAPIView(ACIListAPIView):
-    pass
 
 
 class CategoryCreateListAPIView(ACIListCreateAPIView):

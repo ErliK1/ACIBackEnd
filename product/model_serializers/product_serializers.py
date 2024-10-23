@@ -53,11 +53,41 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             ProductImage.objects.create(product=product, image=image)
         return product
 
-class PitagoraListAPIView(serializers.ModelSerializer):
+class ProductListSerializer(serializers.ModelSerializer):
+    
+    total_discount = serializers.SerializerMethodField()
+    discount = serializers.SerializerMethodField()
+    brand = serializers.CharField(source='brand.name')
+    category = serializers.SerializerMethodField()
+    product_images = serializers.SerializerMethodField()
     
     class Meta:
         model = Product
-        fields = ('id', 'name', 'category', 'sku_code', 'buy_price', 'sell_price', '')
+        fields = ('id', 'name', 'category', 'sku_code', 'buy_price', 'sell_price', 'has_discount', 'brand', 'discount', 'main_image', 'total_discount', 'product_images')
+        
+        
+    
+    def get_total_discount(self, obj):
+        return obj.sell_price - (obj.discount * obj.sell_price)
+    
+    def get_discount(self, obj):
+        return obj.discount * 100
+    
+    def get_category(self, obj):
+        queryset_category_id = obj.product_categories.all().values_list('category_id', flat=True)
+        categories = Category.objects.filter(id__in=queryset_category_id)
+        serializer = CategorySerializer(categories, many=True)
+        return serializer.data
+    
+    def get_product_images(self, obj):
+        queryset = ProductImage.objects.filter(product_id=obj.pk).values_list('image', flat=True)
+        return list(queryset)
+
+
+
+        
+    
+    
 
 
         

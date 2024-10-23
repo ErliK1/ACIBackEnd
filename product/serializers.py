@@ -23,15 +23,4 @@ class CategoryProductListSerializer(serializers.ModelSerializer):
         fields = ('id', 'name')
 
 
-class ProductListSerializer(serializers.ModelSerializer):
-    brand = BrandProductListSerializer()
-    category = serializers.SerializerMethodField() 
 
-    class Meta:
-        model = Product
-        fields = ('id', 'name', 'brand', 'category', 'sell_price') 
-
-    def get_category(self, obj: Product):
-        categories = obj.product_categories.all()
-        serializer = CategoryProductListSerializer(categories, many=True)
-        return serializer.data

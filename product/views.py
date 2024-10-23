@@ -7,7 +7,9 @@ from shared.views import ACIListAPIView
 
 
 from product.models import Product, OrderProduct
-from product.serializers import ProductListFilterSerializer, ProductListSerializer
+from product.serializers import ProductListFilterSerializer
+
+from product.model_serializers.product_serializers import ProductListSerializer
 # Create your views here.
 
 from functools import reduce
