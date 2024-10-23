@@ -28,7 +28,7 @@ def check_if_user_is_admin(request):
     return False
 
 def get_the_last_part_of_date_key(key):
-    if isinstance(key, str):
+    if isinstance(key, str) and key:
         return key[-3:]
     return ''
 

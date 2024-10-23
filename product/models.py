@@ -136,6 +136,8 @@ class OrderProduct(ACIModel):
             else:
                 product_popularity.product_count = product_popularity.product_count + self.product_count
             product_popularity.save()
+            self.product.stock = models.F('stock') - self.product_count
+            self.product.save()
         return super(OrderProduct, self).save(*args, **kwargs)
 
     def __str__(self):

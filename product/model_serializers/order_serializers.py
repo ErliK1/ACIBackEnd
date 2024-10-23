@@ -4,6 +4,8 @@ from rest_framework import serializers
 from product.models import Product, OrderProduct, Order
 from shared.exception import ACIValidationError
 
+from django.db.models import Sum
+
 
 class OrderSerializer(serializers.ModelSerializer):
      
@@ -86,10 +88,14 @@ class OrderCreateForUserSerializer(serializers.ModelSerializer):
         
         
 class OrderListSerializer(serializers.ModelSerializer):
-    
+    total_price = serializers.SerializerMethodField() 
     class Meta:
         model = Order
-        fields = ('id', 'name', 'email', 'phone_number', 'address', 'paid', 'transaction_time', 'is_paid_online')
+        fields = ('id', 'name', 'email', 'phone_number', 'address', 'paid', 'transaction_time', 'is_paid_online', 
+                  'total_price')
+        
+    def get_total_price(self, obj):
+        return OrderProduct.objects.filter(order=obj).aggregate(total_price=Sum('total_price')).get('total_price')
         
 class OrderFilterSerializer(serializers.Serializer):
     name = serializers.CharField(required=False)
