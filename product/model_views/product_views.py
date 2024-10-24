@@ -1,16 +1,18 @@
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.generics import UpdateAPIView
 
 from django.db import transaction
 
 from shared.constants import *
 from shared.views import ACICreateAPIView, ACIListAPIView, ACIListCreateAPIView, ACIRetrieveAPIView
 from product.models import Product, Category, Brand
-from product.model_serializers.product_serializers import ProductCreateSerializer, CategorySerializer, BrandSerializer, ProductListSerializer
+from product.model_serializers.product_serializers import ProductCreateSerializer, CategorySerializer, BrandSerializer, ProductListSerializer, ProductUpdateSerializer
+
 
 
 class ProductCreateAPIView(ACICreateAPIView):
-    query_set = Product.objects.all()
+    queryset = Product.objects.all()
     serializer_class = ProductCreateSerializer
 
     @transaction.atomic
@@ -19,6 +21,10 @@ class ProductCreateAPIView(ACICreateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({DETAIL: 'Produkti u krijua me suksses'}, status=status.HTTP_201_CREATED)
+
+class ProductUpdateAPIView(UpdateAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductUpdateSerializer
 
 
 
@@ -30,7 +36,7 @@ class CategoryCreateListAPIView(ACIListCreateAPIView):
 
 
 class BrandCreateListAPIView(ACIListCreateAPIView):
-    queryset = Brand
+    queryset = Brand.objects.all()
     read_serializer_class = BrandSerializer
     write_serializer_class = BrandSerializer
     

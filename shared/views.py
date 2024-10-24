@@ -62,6 +62,7 @@ class ACIListAPIView(ListAPIView, abc.ABC):
                 query_set.distinct()
             return query_set
         query_set = self.get_queryset()
+        print(query_set)
         if query_set:
             query_set.distinct()
         return query_set
