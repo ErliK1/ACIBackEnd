@@ -4,6 +4,9 @@ from django.utils import timezone
 
 from shared.exception import ACIValidationError
 
+
+from copy import deepcopy
+
 # Create your models here.
 
 def get_local_timezone():
@@ -33,14 +36,22 @@ class Product(ACIModel):
             self.has_discount = True
         else:
             self.has_discount = False
-        if self.pk:
+        if self.pk and self.discount > 1:
             self.discount = models.F("discount") / 100
-        else:
+        elif self.discount > 1:
             self.discount = self.discount / 100
         super(Product, self).save(*args, **kwargs)
         
     def __str__(self):
         return f"{self.name} {str(self.brand)}"
+
+class ProductBuyOrder(ACIModel):
+    class Meta:
+        db_table = 'product_buy_order'
+        
+    product = models.ForeignKey(Product, related_name='product_buy_orders', on_delete=models.CASCADE)
+    start_time = models.DateTimeField(auto_now_add=True)
+    end_time = models.DateTimeField(null=True, blank=True)
 
 
 class Brand(ACIModel):
@@ -116,7 +127,8 @@ class OrderProduct(ACIModel):
     order = models.ForeignKey(Order, related_name='order_products', on_delete=models.CASCADE)
     product: Product = models.ForeignKey(Product, related_name='order_products', on_delete=models.CASCADE)
     product_count = models.IntegerField()
-    price = models.FloatField()
+    sell_price = models.FloatField()
+    buy_price = models.FloatField(null=True, blank=True)
     discount = models.FloatField()
     total_price = models.FloatField(null=True, blank=True)
 
@@ -125,18 +137,19 @@ class OrderProduct(ACIModel):
             if self.product_count > self.product.stock:
                 raise ACIValidationError("Sbohet Fjal, Ik mshpi")
             if not self.order.is_admin:
-                self.price = self.product.sell_price
+                self.sell_price = self.product.sell_price
                 self.discount = self.product.discount
             if self.discount > 1:
                 self.discount = self.discount / 100
-            self.total_price = (self.price - self.price * self.discount) * self.product_count
+            self.buy_price = self.product.buy_price
+            self.total_price = (self.sell_price - self.sell_price * self.discount) * self.product_count
             product_popularity, exists = ProductPopularity.objects.get_or_create(product=self.product)
             if exists:
                 product_popularity.product_count = models.F('product_count') + self.product_count
             else:
                 product_popularity.product_count = product_popularity.product_count + self.product_count
             product_popularity.save()
-            self.product.stock = models.F('stock') - self.product_count
+            self.product.stock = self.product.stock - self.product_count
             self.product.save()
         return super(OrderProduct, self).save(*args, **kwargs)
 

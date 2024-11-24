@@ -32,7 +32,8 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'category', 'sku_code', 'buy_price', 'sell_price',
                   'description', 'brand', 'stock', 'discount', 'main_image', 'images')
         extra_kwargs = {
-                    'id': {'read_only': True}
+                    'id': {'read_only': True},
+                    'buy_price': {'required': True}
                 }
 
 

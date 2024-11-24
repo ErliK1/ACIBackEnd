@@ -23,7 +23,7 @@ class OrderProductSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = OrderProduct
-        fields = ('id', 'order', 'product', 'product_count', 'price', 'discount', 'total_price')
+        fields = ('id', 'order', 'product', 'product_count', 'sell_price', 'discount', 'total_price')
         extra_kwargs = {
             'id': {'read_only': True},
             'order': {'read_only': True},
@@ -34,7 +34,7 @@ class OrderProductSerializerUser(OrderProductSerializer):
     
     class Meta(OrderProductSerializer.Meta):
         extra_kwargs = {
-            'price': {'required': False},
+            'sell_price': {'required': False},
             'discount': {'required': False},
             **OrderProductSerializer.Meta.extra_kwargs
         }
@@ -48,7 +48,7 @@ class OrderCreateForAdminSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = (
-            'id', 'transaction_time', 'client_secret', 'is_paid_online', 'printed_recipt' 'name', 'email', 'address', 'order_products', 'paid')
+            'id', 'transaction_time', 'client_secret', 'is_paid_online', 'printed_recipt', 'name', 'email', 'address', 'order_products', 'paid')
         extra_kwargs = {
             'id': {'read_only': True},
             'transaction_time': {'read_only': True}
@@ -79,7 +79,7 @@ class OrderCreateForUserSerializer(serializers.ModelSerializer):
             validated_data['paid'] = True
         order = Order.objects.create(**validated_data)
         for element in order_product:
-            keys = list(filter(lambda x: x in ["price", "discount"], element.keys()))
+            keys = list(filter(lambda x: x in ["sell_price", "buy_price", "discount"], element.keys()))
             for key in keys:
                 element.pop(key)
         for element in order_product:
@@ -102,9 +102,3 @@ class OrderFilterSerializer(serializers.Serializer):
     email = serializers.EmailField(required=False)
     address = serializers.CharField(required=False)
     phone_number = serializers.CharField(required=False)
-    
-    
-    
-
-    
-    
