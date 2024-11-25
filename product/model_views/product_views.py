@@ -7,7 +7,7 @@ from django.db import transaction
 from shared.constants import *
 from shared.views import ACICreateAPIView, ACIListAPIView, ACIListCreateAPIView, ACIRetrieveAPIView
 from product.models import Product, Category, Brand
-from product.model_serializers.product_serializers import ProductCreateSerializer, CategorySerializer, BrandSerializer, ProductListSerializer, ProductUpdateSerializer
+from product.model_serializers.product_serializers import ProductCreateSerializer, CategorySerializer, BrandSerializer, ProductListSerializer, ProductUpdateSerializer, ProductInsertDiscountSerializer
 
 
 
@@ -42,4 +42,17 @@ class BrandCreateListAPIView(ACIListCreateAPIView):
     
     
 
+class ProductInsertDiscountView(ACICreateAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductInsertDiscountSerializer
 
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        products = serializer.validated_data.get('product')
+        discount = serializer.validated_data.get('discount')
+        for product in products:
+            product.discount = discount
+            product.save()
+        return Response({MESSAGE: "U krye me sukses!"}, status=status.HTTP_200_OK)

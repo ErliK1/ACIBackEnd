@@ -2,7 +2,7 @@ from django.urls import path
 from django.urls import include
 
 from product.model_views.order_views import OrderCreateAPIView, OrderListFromManagerAPIView
-from product.model_views.product_views import ProductCreateAPIView, CategoryCreateListAPIView, BrandCreateListAPIView, ProductUpdateAPIView 
+from product.model_views.product_views import ProductCreateAPIView, CategoryCreateListAPIView, BrandCreateListAPIView, ProductUpdateAPIView, ProductInsertDiscountView
 from product.url_constans import *
 from product.views import ProductListAPIView
 
@@ -14,5 +14,6 @@ urlpatterns = [
     path('brand/list/create/', BrandCreateListAPIView.as_view(), name=BRAND_LIST_CREATE),
     path('order/create/', OrderCreateAPIView.as_view(), name=ORDER_CREATE),
     path('order/list/', OrderListFromManagerAPIView.as_view(), name=ORDER_LIST),
+    path('discount/set/', ProductInsertDiscountView.as_view())
     
 ] 

@@ -137,11 +137,9 @@ class ProductListSerializer(serializers.ModelSerializer):
         queryset = ProductImage.objects.filter(product_id=obj.pk).values_list('image', flat=True)
         return list(queryset)
 
+class ProductInsertDiscountSerializer(serializers.Serializer):
+    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all(), many=True)
+    discount = serializers.FloatField()
 
 
-        
-    
-    
 
-
-        

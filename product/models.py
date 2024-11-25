@@ -36,9 +36,7 @@ class Product(ACIModel):
             self.has_discount = True
         else:
             self.has_discount = False
-        if self.pk and self.discount > 1:
-            self.discount = models.F("discount") / 100
-        elif self.discount > 1:
+        if self.discount > 1:
             self.discount = self.discount / 100
         super(Product, self).save(*args, **kwargs)
         
