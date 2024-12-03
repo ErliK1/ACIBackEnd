@@ -16,6 +16,8 @@ from pathlib import Path
 
 from corsheaders.defaults import default_headers
 
+import os
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -29,15 +31,19 @@ ENVIRONMENT = Environment.staging
 if ENVIRONMENT == Environment.staging:
     DEBUG=True
     APP_URL = 'http://localhost:4200'
-    DB_HOST = ''
-    DB_NAME = 'ACI_{}'.format(ENVIRONMENT)
-    DB_PASSWORD = ''
+    DB_HOST = os.environ.get('DB_HOST')
+    DB_NAME = os.environ.get('DB_NAME')
+    DB_USER = os.environ.get('DB_USER')
+    DB_PASSWORD = os.environb.get('DB_PASS')
     HOST = 'http://localhost:8000'
+    ENGINE = 'django.db.backends.postgresql'
 elif ENVIRONMENT == ENVIRONMENT.production:
     DEBUG = False
     APP_URL = 'https://api.aci.al'
-    DB_HOST = ''
-    DB_NAME = 'ACI_{}'.format(ENVIRONMENT)
+    DB_HOST = os.environ.get('DB_HOST')
+    DB_NAME = os.environ.get('DB_NAME')
+    DB_USER = os.environ.get('DB_USER')
+    DB_PASSWORD = os.environb.get('DB_PASS')
     HOST = ''
 
 # Quick-start development settings - unsuitable for production
@@ -117,12 +123,25 @@ AUTH_USER_MODEL = 'shared.User'
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-DATABASES = {
-        'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / 'db.sqlite3',
+if ENVIRONMENT == Environment.production:
+    DATABASES = {
+                'default': {
+                    'ENGINE': 'django.db.backends.sqlite3',
+                    'NAME': BASE_DIR / 'db.sqlite3',
+                }
             }
-        }
+else:
+    DATABASES = {
+                'default': {
+                    'ENGINE': ENGINE,
+                    'HOST': DB_HOST,
+                    'NAME': DB_NAME,
+                    'USER': DB_USER,
+                    'PASSWORD': DB_PASSWORD
+
+                 }
+
+    }
 
 
 # Password validation
