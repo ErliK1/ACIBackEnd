@@ -34,7 +34,7 @@ if ENVIRONMENT == Environment.staging:
     DB_HOST = os.environ.get('DB_HOST')
     DB_NAME = os.environ.get('DB_NAME')
     DB_USER = os.environ.get('DB_USER')
-    DB_PASSWORD = os.environb.get('DB_PASS')
+    DB_PASSWORD = os.environ.get('DB_PASS')
     HOST = 'http://localhost:8000'
     ENGINE = 'django.db.backends.postgresql'
 elif ENVIRONMENT == ENVIRONMENT.production:
