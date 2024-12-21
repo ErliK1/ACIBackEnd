@@ -123,7 +123,7 @@ AUTH_USER_MODEL = 'shared.User'
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-if ENVIRONMENT == Environment.production:
+if ENVIRONMENT == Environment.staging:
     DATABASES = {
                 'default': {
                     'ENGINE': 'django.db.backends.sqlite3',
