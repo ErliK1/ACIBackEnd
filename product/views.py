@@ -16,7 +16,7 @@ from functools import reduce
 
 
 class ProductListAPIView(ACIListAPIView):
-    serializer_class = ProductListSerializer 
+    serializer_class = ProductListSerializer
     filter_map = {
             'category': 'product_categories__category__id',
             'brand': 'brand__id',
@@ -31,11 +31,13 @@ class ProductListAPIView(ACIListAPIView):
 
 
     def get_queryset(self, ):     
-        if self.request.query_params.get('price') and self.request.query_params.get('price').is_numeric():
-            price = float(self.request.query_params.get('price'))
-            popularity_queryset = Product.objects.filter(sell_price__lte=price, deleted=False)
-        else:
-            popularity_queryset = Product.objects.filter(deleted=False)
+        popularity_queryset = Product.objects.filter(deleted=False)
+        if self.request.query_params.get('lt_price') and self.request.query_params.get('lt_price').isnumeric():
+            price = float(self.request.query_params.get('lt_price'))
+            popularity_queryset = popularity_queryset.filter(sell_price__lte=price)
+        elif self.request.query_params.get('gt_price') and self.request.query_params.get('gt_price').isnumeric():
+            price = float(self.request.query_params.get('gt_price'))
+            popularity_queryset = popularity_queryset.filter(sell_price__gte=price)
         return popularity_queryset
 
 
