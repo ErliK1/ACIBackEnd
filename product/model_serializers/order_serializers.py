@@ -8,7 +8,7 @@ from django.db.models import Sum
 
 
 class OrderSerializer(serializers.ModelSerializer):
-     
+
     class Meta:
         model = Order
         fields = ('id', 'client_secret', 'printed_receipt',
@@ -20,7 +20,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
 
 class OrderProductSerializer(serializers.ModelSerializer):
-    
+
     class Meta:
         model = OrderProduct
         fields = ('id', 'order', 'product', 'product_count', 'sell_price', 'discount', 'total_price')
@@ -28,22 +28,22 @@ class OrderProductSerializer(serializers.ModelSerializer):
             'id': {'read_only': True},
             'order': {'read_only': True},
         }
-    
-        
+
+
 class OrderProductSerializerUser(OrderProductSerializer):
-    
+
     class Meta(OrderProductSerializer.Meta):
         extra_kwargs = {
             'sell_price': {'required': False},
             'discount': {'required': False},
             **OrderProductSerializer.Meta.extra_kwargs
         }
-        
-    
-        
+
+
+
 
 class OrderCreateForAdminSerializer(serializers.ModelSerializer):
-   
+
     order_products = OrderProductSerializer(many=True)
     class Meta:
         model = Order
@@ -53,7 +53,7 @@ class OrderCreateForAdminSerializer(serializers.ModelSerializer):
             'id': {'read_only': True},
             'transaction_time': {'read_only': True}
         }
-        
+
     def create(self, validated_data):
         order_products = validated_data.pop('order_products')
         validated_data['is_admin'] = True
@@ -61,7 +61,7 @@ class OrderCreateForAdminSerializer(serializers.ModelSerializer):
         for element in order_products:
             OrderProduct.objects.create(order=order, **element)
         return order
-        
+
 class OrderCreateForUserSerializer(serializers.ModelSerializer):
     order_products = OrderProductSerializerUser(many=True)
     class Meta:
@@ -71,7 +71,7 @@ class OrderCreateForUserSerializer(serializers.ModelSerializer):
             'name': {'required': True},
             'email': {'required': True}
         }
-        
+
     def create(self, validated_data):
         order_product = validated_data.pop('order_products')
         if validated_data.get('client_secret', False):
@@ -85,18 +85,20 @@ class OrderCreateForUserSerializer(serializers.ModelSerializer):
         for element in order_product:
             OrderProduct.objects.create(order=order, **element)
         return order
-        
-        
+
+
 class OrderListSerializer(serializers.ModelSerializer):
-    total_price = serializers.SerializerMethodField() 
+    total_price = serializers.SerializerMethodField()
+
     class Meta:
         model = Order
         fields = ('id', 'name', 'email', 'phone_number', 'address', 'paid', 'transaction_time', 'is_paid_online', 
                   'total_price')
-        
+
     def get_total_price(self, obj):
         return OrderProduct.objects.filter(order=obj).aggregate(total_price=Sum('total_price')).get('total_price')
-        
+
+
 class OrderFilterSerializer(serializers.Serializer):
     name = serializers.CharField(required=False)
     email = serializers.EmailField(required=False)
