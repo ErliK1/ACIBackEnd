@@ -70,6 +70,9 @@ class ProductUpdateSerializer(ProductCreateSerializer):
             'discount': {'required': False},
             'main_image': {'required': False}
         }
+
+    def validate(self, data):
+        return super(serializers.ModelSerializer, self).validate(data)
     
             
     def update(self, instance: Product, validated_data):
@@ -91,7 +94,7 @@ class ProductUpdateSerializer(ProductCreateSerializer):
             
     def create_product_categories(self, product, categories):
         categories = Category.objects.filter(id__in=categories)
-        product_categories = product.product_categories
+        product_categories = product.product_categories.all()
         product_categories.delete()
         for element in categories:
             ProductCategory.objects.create(category=element, product=product)

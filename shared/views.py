@@ -94,7 +94,6 @@ class ACIListAPIView(ListAPIView, abc.ABC):
         order_by = self.request.query_params.get('order')
         if sort_by and order_by:
             sort_by = json.loads(sort_by) 
-            sort_by = sort_by.get('values')
             if order_by == 'asc':
                return query_set.order_by(*[self.sort_map.get(element) for element in sort_by])
             else:
